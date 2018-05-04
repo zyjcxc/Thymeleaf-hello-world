@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>thymeleaf</title>
+
+</head>
+<body>
+<h1>1.变量表达式</h1>
+<div>语法: ${...}</div>
+<div>
+    <!-- th:text 不会转义 -->
+    <!-- th:utext 会转义 -->
+    用户1：<span th:text="${user1.name}"></span>
+    <br>
+    用户1：<span th:utext="${user1.name}"></span>
+    <br>
+    用户2：<span th:text="${user2.name}"></span>
+</div>
+
+<h1>2.选择表达式</h1>
+<div>语法: *{...}</div>
+<div th:object="${user1}">
+    姓名：<span th:text="*{name}"></span>
+    </br>
+    年龄：<span th:text="*{age}"></span>
+</div>
+
+<h1>2.选择表达式</h1>
+<div>语法: *{...}</div>
+<div th:object="${user1}">
+    姓名：<span th:text="*{name}"></span>
+    </br>
+    年龄：<span th:text="*{age}"></span>
+</div>
+
+<h1>3.链接表达式</h1>
+<h3>绝对路径</h3>
+<div th:object="${user1}">
+    <!-- 绝对路径 -->
+    <!-- Will produce 'http://localhost:8080/details?userId=3' (plus rewriting) -->
+    <a href="details.html" th:href="@{http://localhost:8080/details(userId=*{id})}">根据id查看</a>
+</div>
+<h3>相对路径</h3>
+<div th:object="${user2}">
+    <!-- 相对路径 -->
+    <!-- Will produce 'http://localhost:8080/details?userId=3' (plus rewriting) -->
+    <a href="details.html" th:href="@{~/details(userId=*{id})}">根据id查看</a>
+</div>
+<h3>和协议相对路径</h3>
+<div th:object="${user2}">
+    <!-- 相对路径 -->
+    <!-- Will produce 'details?userId=3' (plus rewriting) -->
+    <a href="details.html" th:href="@{//details(userId=*{id})}">根据id查看</a>
+</div>
+
+<h1>4.分段表达式/ 模版布局 </h1>
+<!-- footer.html中 -->
+<div th:insert="~{footer :: copy}">
+</div>
+
+<!-- 引用未用fragment 标注的代码块 -->
+<div th:insert="~{footer :: #copy-section}">
+</div>
+
+<!--8.2 th:insert th:replace th:include 之间的区别
+
+th:insert  -&#45;&#45; 插入代码块    th:replace &#45;&#45; 替换代码块会替换掉容器标签   th:include &#45;&#45;&#45;&#45; 和insert相似但只会插入fragment标注body内的内容。
+
+8.3  带参数的代码段
+
+<div th:fragment="frag (onevar,twovar)">
+    <p th:text="${onevar} + ' - ' + ${twovar}">...</p>
+</div>
+
+<div th:replace="::frag (${value1},${value2})">...</div>
+<div th:replace="::frag (onevar=${value1},twovar=${value2})">...</div>-->
+
+<body>
+
+<h1>5.字面量</h1>
+<div>
+    <p>
+        Now you are looking at a <span th:text="'文本内容'">模板部分</span>.
+    </p>
+</div>
+
+<h1>6.条件表达式</h1>
+<div th:if="${user1.isAdmin()} == true" >
+    <div>是管理员</div>
+</div>
+<div th:if="${user1} != null" >
+    <div>user1不是null</div>
+</div>
+<a href="details.html" th:href="@{~/details(userId=${user1.id})}" th:if="${not #lists.isEmpty(user1.address)}">如果list为空不显示</a>
+<!-- 算数操作 + - * / %-->
+<!-- 局部变量的使用示例 -->
+<div th:with="isEvenAge=(${user2.age} % 2 == 0)">
+    user的age对2取余为0么？ ： <span th:text="${isEvenAge}"></span>
+</div>
+<!-- > < >= <= gt, lt, ge ,le == != eq, ne-->
+<!-- 条件运算符 三目 -->
+<style>
+    .even {
+        background: aqua;
+    }
+    .odd {
+        background: brown;
+    }
+</style>
+<table>
+    <tr th:class="(${user1.age} % 2 == 0 ? 'even' : 'odd')">
+        <td th:text="${user1.name}"></td>
+    </tr>
+    <tr th:class="(${user2.age} lt 30 ? 'odd' : 'even')">
+        <td th:text="${user2.name}"></td>
+    </tr>
+    <!-- 无操作 -->
+    <tr>
+        <td th:text="${user1.name} == '张三' ?: _">no user</td>
+    </tr>
+</table>
+<!-- switch -->
+<div th:switch="${user1.age}">
+    <p th:case="18">user1 age is eq 18</p>
+    <p th:case="15">user1 age is eq 16</p>
+    <p th:case="*">User is some other thing</p>    --默认的 case 相当于default
+</div>
+
+<h1>7.设置属性值</h1>
+<div>
+    <!-- 5.1 设置任何Attribute 的方法 -->
+    <input type="submit" value="Subscribe!" th:attr="value='http://www.baidu.com'"/>   --设置单个
+    <!-- 将input赋值 -->
+    <input type="text" value="default" th:attr="value=${user1.name}" >
+    <!-- 一次设置多个 -->
+    <img src=""  th:attr="src=@{/images/1.jpg},title=${user1.name}" />
+
+    <!-- 5.2 设置一些内置的Attribute的方法 -->
+
+    <!--<li><a href="product/list.html" th:href="@{/product/list}">Product List</a></li>
+
+    <form action="subscribe.html" th:action="@{/subscribe}">
+
+    <input type="submit" value="Subscribe!" th:value="#{subscribe.submit}"/>
+
+    <img src="../../images/gtvglogo.png"  th:src="@{/images/gtvglogo.png}" th:alt-title="#{logo}" /> &#45;&#45; 一次设置多个（alt title）的方法-->
+
+    <!--其它的可用属性：http://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html#setting-value-to-specific-attributes-->
+
+    <!--5.3 设置html里没有指的任何属性的语法-->
+    <span th:whatever="${user1.name}">...</span>
+    <!-- whatever可以换成任意你想换的 比如下面：-->
+    <input th:mengqa-data-id="${user1.id}"/>
+
+    <!-- 固定值布尔值 checked disabled readonly hidden selected -->
+    <br>
+    <span th:text="'user1的age为' + ${user1.age}"></span>
+    <input type="checkbox" name="more18" th:checked="${user1.age} ge 18" />
+    <br>
+    <span th:text="'user2的age为' + ${user2.age}"></span>
+    <input type="checkbox" name="more18" th:checked="${user2.age} ge 18" />
+    <br>
+</div>
+
+<h1>8.迭代器</h1>
+<!-- 状态变量 index(从0开始) count(从1开始) size current even/odd first last-->
+<li th:each="address : ${user1.address}" th:text="${address.area} + ${address.street}"></li>
+
+<table>
+    <tr th:each="address, state : ${user1.address}" th:class="${state.odd} ? 'odd' : 'even'">
+        <td th:text="${address.area}"></td>
+        <td th:text="${address.street}"></td>
+    </tr>
+</table>
+
+<!-- Thymeleaf 解析器注释块 -->
+<!--/*-->
+<div>我被注释掉了</div>
+<!--*/-->
+
+<h1>9.内联</h1>
+<div>
+    <!-- [[...]] 对应 th:text  [(...)]对应 th:utext -->
+    <!-- The message is "张三" -->
+    <p>The message is "[[${user1.name}]]"</p>
+    <p>The message is "[(${user1.name})]" == > th:utext</p>
+    <!-- 禁用内联 -->
+    <p th:inline="none">A double array looks list this: [[1,2,3], [4,5]]!</p>
+</div>
+
+<h1>10.js内联</h1>
+<script th:inline="javascript">
+    var user1Name = '[(${user1.name})]';
+    console.log(user1Name);
+</script>
+
+<h1>11.css内联</h1>
+<style th:inline="css">
+    .[[${className}]] {
+        background : brown;
+        font-size:20px;
+    }
+</style>
+<div th:class="${className}"> agbc</div>
+
+<h1>12.表达基本对象</h1>
+#ctx: the context object.
+#vars: the context variables.
+#locale: the context locale.
+#request: (only in Web Contexts) the HttpServletRequest object.
+#response: (only in Web Contexts) the HttpServletResponse object.
+#session: (only in Web Contexts) the HttpSession object.
+#servletContext: (only in Web Contexts) the ServletContext object.
+
+其它公共对象参考: http://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html#appendix-a-expression-basic-objects
+
+
+</body>
+</html>
